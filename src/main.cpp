@@ -12,6 +12,8 @@ struct EditorConfig {
     float windowPadding;
     float verticalLineSpacing;
     float baseVerticalLineSpacing;
+    int lineNumberWidth;
+    int spaceBetweenNumbersAndText;
     float editorZoom;
     float zoomSpeed;
     float fontSize;
@@ -44,7 +46,9 @@ int main(void) {
     // Editor Config
     EditorConfig editor{
         .windowPadding = 10.0f,
-        .baseVerticalLineSpacing = 40.0f,
+        .baseVerticalLineSpacing = 20.0f,
+        .lineNumberWidth = 3,
+        .spaceBetweenNumbersAndText = 2,
         .editorZoom = 1.0f,
         .zoomSpeed = 0.5f,
         .fontSize = 16.0f,
@@ -58,14 +62,15 @@ int main(void) {
         .debugGrid = true,
 
     };
-    editor.verticalLineSpacing = editor.baseVerticalLineSpacing * editor.editorZoom;
+    editor.verticalLineSpacing =
+        editor.baseVerticalLineSpacing * editor.editorZoom;
 
     Vector2 cursorPosition = Vector2{0.0f, 0.0f};
 
     // Load Fonts
     Font font =
         LoadFontEx("resources/fonts/FiraCode-Regular.ttf", 16, nullptr, 0);
-    
+
     editor.gridWidth = MeasureTextEx(font, "A", editor.fontSize, 0).x;
     editor.gridHeight = MeasureTextEx(font, "A", editor.fontSize, 0).y;
 
@@ -118,7 +123,8 @@ By Gholamreza Dar
                         MeasureTextEx(font, "A", editor.fontSize, 0).x;
                     editor.gridHeight =
                         MeasureTextEx(font, "A", editor.fontSize, 0).y;
-                    editor.verticalLineSpacing = editor.baseVerticalLineSpacing * editor.editorZoom;
+                    editor.verticalLineSpacing =
+                        editor.baseVerticalLineSpacing * editor.editorZoom;
                 }
             }
             if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_E)) {
@@ -135,7 +141,8 @@ By Gholamreza Dar
                         MeasureTextEx(font, "A", editor.fontSize, 0).x;
                     editor.gridHeight =
                         MeasureTextEx(font, "A", editor.fontSize, 0).y;
-                    editor.verticalLineSpacing = editor.baseVerticalLineSpacing * editor.editorZoom;
+                    editor.verticalLineSpacing =
+                        editor.baseVerticalLineSpacing * editor.editorZoom;
                 }
             }
         }
@@ -145,48 +152,93 @@ By Gholamreza Dar
             editor.debugGrid = !editor.debugGrid;
         }
 
+        // Change vertical spacing using Shift+E and Shift+Q
+        if (IsKeyDown(KEY_LEFT_SHIFT) && IsKeyPressed(KEY_E)) {
+            editor.baseVerticalLineSpacing += 5;
+            editor.baseVerticalLineSpacing = MIN(editor.baseVerticalLineSpacing, 100);
+            editor.verticalLineSpacing = editor.baseVerticalLineSpacing * editor.editorZoom;
+        }
+        if (IsKeyDown(KEY_LEFT_SHIFT) && IsKeyPressed(KEY_Q)) {
+            editor.baseVerticalLineSpacing -= 5;
+            editor.baseVerticalLineSpacing = MAX(editor.baseVerticalLineSpacing, 0);
+            editor.verticalLineSpacing = editor.baseVerticalLineSpacing * editor.editorZoom;
+        }
 
         // Working grid (this is a grid that every character can be placed on)
-        if(true)
-        {
+        if (true) {
             // Draw the grid
             if (editor.debugGrid) {
                 // Debug text
-                // DrawTextEx(font, "A", Vector2{0.0f, 0.0f}, editor.fontSize, 0, editor.editorTextColor);
-                // DrawTextEx(font, "B", Vector2{1.0f*editor.gridWidth, 0.0f*editor.gridHeight}, editor.fontSize, 0, editor.editorTextColor);
-                // DrawTextEx(font, "C", Vector2{0.0f*editor.gridWidth, 1.0f*editor.gridHeight+editor.verticalLineSpacing}, editor.fontSize, 0, editor.editorTextColor);
-                // DrawTextEx(font, "D", Vector2{1.0f*editor.gridWidth, 1.0f*editor.gridHeight+editor.verticalLineSpacing}, editor.fontSize, 0, editor.editorTextColor);
+                // DrawTextEx(font, "A", Vector2{0.0f, 0.0f}, editor.fontSize,
+                // 0, editor.editorTextColor); DrawTextEx(font, "B",
+                // Vector2{1.0f*editor.gridWidth, 0.0f*editor.gridHeight},
+                // editor.fontSize, 0, editor.editorTextColor); DrawTextEx(font,
+                // "C",
+                // Vector2{0.0f*editor.gridWidth, 1.0f*editor.gridHeight+editor.verticalLineSpacing},
+                // editor.fontSize, 0, editor.editorTextColor); DrawTextEx(font,
+                // "D",
+                // Vector2{1.0f*editor.gridWidth, 1.0f*editor.gridHeight+editor.verticalLineSpacing},
+                // editor.fontSize, 0, editor.editorTextColor);
 
-                int gridRows = static_cast<int>(screenHeight / editor.gridHeight);
+                int gridRows =
+                    static_cast<int>(screenHeight / editor.gridHeight);
                 int gridCols = static_cast<int>(screenWidth / editor.gridWidth);
 
                 // Draw vertical lines
-                for(int i=0; i<gridCols+1; i++) {
-                    DrawRectangle(i*editor.gridWidth + editor.windowPadding, editor.windowPadding, editor.gridLineWidth, screenHeight-editor.windowPadding*2, editor.editorGridColor);
+                for (int i = 0; i < gridCols + 1; i++) {
+                    DrawRectangle(i * editor.gridWidth + editor.windowPadding,
+                                  editor.windowPadding, editor.gridLineWidth,
+                                  screenHeight - editor.windowPadding * 2,
+                                  editor.editorGridColor);
                 }
 
                 // Draw Horizontal lines
-                for(int i=0; i<gridRows/2+1; i++) {
-                    DrawRectangle(editor.windowPadding, i*editor.verticalLineSpacing + i*editor.gridHeight + editor.windowPadding, screenWidth - editor.windowPadding*2, editor.gridLineWidth, editor.editorGridColor);
-                    DrawRectangle(editor.windowPadding, i*editor.verticalLineSpacing + (i+1)*editor.gridHeight + editor.windowPadding, screenWidth - editor.windowPadding*2, editor.gridLineWidth, editor.editorGridColor);
+                for (int i = 0; i < gridRows + 1; i++) {
+                    DrawRectangle(editor.windowPadding,
+                                  i * editor.verticalLineSpacing +
+                                      i * editor.gridHeight +
+                                      editor.windowPadding,
+                                  screenWidth - editor.windowPadding * 2,
+                                  editor.gridLineWidth, editor.editorGridColor);
+                    DrawRectangle(editor.windowPadding,
+                                  i * editor.verticalLineSpacing +
+                                      (i + 1) * editor.gridHeight +
+                                      editor.windowPadding,
+                                  screenWidth - editor.windowPadding * 2,
+                                  editor.gridLineWidth, editor.editorGridColor);
                 }
-
             }
         }
-        
+
         // Draw the line numbers
         {
             // Line Numbers
             SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
             for (int i = 0; i < numLines; i++) {
                 float x = editor.windowPadding;
-                float y = i * editor.verticalLineSpacing + i * editor.gridHeight + editor.windowPadding;
-                std::string line_number_text = leftPad(std::to_string(i + 1), 3);
+                float y = i * editor.verticalLineSpacing +
+                          i * editor.gridHeight + editor.windowPadding;
+                std::string line_number_text =
+                    leftPad(std::to_string(i + 1), editor.lineNumberWidth);
                 DrawTextEx(font, line_number_text.c_str(), Vector2{x, y},
                            editor.fontSize, 0, editor.editorLineNumbersColor);
             }
         }
-        
+
+        // Draw the text
+        {
+            // Text
+            for (int i = 0; i < numLines; i++) {
+                float x = editor.windowPadding +
+                          editor.gridWidth * (editor.lineNumberWidth + 2);
+                float y = i * editor.verticalLineSpacing +
+                          i * editor.gridHeight + editor.windowPadding;
+                std::string line_text = editorData[i];
+                DrawTextEx(font, line_text.c_str(), Vector2{x, y},
+                           editor.fontSize, 0, editor.editorTextColor);
+            }
+        }
+
         EndDrawing();
     }
 
