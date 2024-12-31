@@ -46,10 +46,10 @@ int main(void) {
     // Editor Config
     EditorConfig editor{
         .windowPadding = 10.0f,
-        .baseVerticalLineSpacing = 20.0f,
+        .baseVerticalLineSpacing = 5.0f,
         .lineNumberWidth = 3,
         .spaceBetweenNumbersAndText = 2,
-        .editorZoom = 1.0f,
+        .editorZoom = 2.0f,
         .zoomSpeed = 0.5f,
         .fontSize = 16.0f,
         .gridLineWidth = 2.0f,
@@ -64,12 +64,15 @@ int main(void) {
     };
     editor.verticalLineSpacing =
         editor.baseVerticalLineSpacing * editor.editorZoom;
+    editor.fontSize = int(16 * editor.editorZoom);
 
     Vector2 cursorPosition = Vector2{0.0f, 0.0f};
+    cursorPosition.x = editor.lineNumberWidth + editor.spaceBetweenNumbersAndText;
+    cursorPosition.y = 0;
 
     // Load Fonts
     Font font =
-        LoadFontEx("resources/fonts/FiraCode-Regular.ttf", 16, nullptr, 0);
+        LoadFontEx("resources/fonts/FiraCode-Regular.ttf", editor.fontSize, nullptr, 0);
 
     editor.gridWidth = MeasureTextEx(font, "A", editor.fontSize, 0).x;
     editor.gridHeight = MeasureTextEx(font, "A", editor.fontSize, 0).y;
@@ -107,8 +110,9 @@ By Gholamreza Dar
         // FPS counter
         DrawFPS(screenWidth - 110, 10);
 
-        // Change editor zoom with control+Q and control+E
+        // UI
         {
+            // Change editor zoom with control+Q and control+E
             if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_Q)) {
                 editor.editorZoom -= editor.zoomSpeed;
                 editor.editorZoom = MAX(0.5f, editor.editorZoom);
@@ -145,41 +149,51 @@ By Gholamreza Dar
                         editor.baseVerticalLineSpacing * editor.editorZoom;
                 }
             }
-        }
+            // Toggle debug grid with CTRL+G
+            if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_G)) {
+                editor.debugGrid = !editor.debugGrid;
+            }
 
-        // Toggle debug grid with CTRL+G
-        if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_G)) {
-            editor.debugGrid = !editor.debugGrid;
-        }
+            // Change vertical spacing using Shift+E and Shift+Q
+            if (IsKeyDown(KEY_LEFT_SHIFT) && IsKeyPressed(KEY_E)) {
+                editor.baseVerticalLineSpacing += 5;
+                editor.baseVerticalLineSpacing =
+                    MIN(editor.baseVerticalLineSpacing, 100);
+                editor.verticalLineSpacing =
+                    editor.baseVerticalLineSpacing * editor.editorZoom;
+            }
+            if (IsKeyDown(KEY_LEFT_SHIFT) && IsKeyPressed(KEY_Q)) {
+                editor.baseVerticalLineSpacing -= 5;
+                editor.baseVerticalLineSpacing =
+                    MAX(editor.baseVerticalLineSpacing, 0);
+                editor.verticalLineSpacing =
+                    editor.baseVerticalLineSpacing * editor.editorZoom;
+            }
 
-        // Change vertical spacing using Shift+E and Shift+Q
-        if (IsKeyDown(KEY_LEFT_SHIFT) && IsKeyPressed(KEY_E)) {
-            editor.baseVerticalLineSpacing += 5;
-            editor.baseVerticalLineSpacing = MIN(editor.baseVerticalLineSpacing, 100);
-            editor.verticalLineSpacing = editor.baseVerticalLineSpacing * editor.editorZoom;
-        }
-        if (IsKeyDown(KEY_LEFT_SHIFT) && IsKeyPressed(KEY_Q)) {
-            editor.baseVerticalLineSpacing -= 5;
-            editor.baseVerticalLineSpacing = MAX(editor.baseVerticalLineSpacing, 0);
-            editor.verticalLineSpacing = editor.baseVerticalLineSpacing * editor.editorZoom;
+            // Cursor movement
+            if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_H)) {
+                cursorPosition.x -= 1;
+                cursorPosition.x = MAX(editor.lineNumberWidth + editor.spaceBetweenNumbersAndText, cursorPosition.x);
+            }
+            if (IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_L)) {
+                cursorPosition.x += 1;
+                // TODO: not 80! limit the line width
+                cursorPosition.x = MIN(80, cursorPosition.x);
+            }
+            if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_K)) {
+                cursorPosition.y -= 1;
+                cursorPosition.y = MAX(0, cursorPosition.y);
+            }
+            if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_J)) {
+                cursorPosition.y += 1;
+                cursorPosition.y = MIN(numLines - 1, cursorPosition.y);
+            }
         }
 
         // Working grid (this is a grid that every character can be placed on)
         if (true) {
             // Draw the grid
             if (editor.debugGrid) {
-                // Debug text
-                // DrawTextEx(font, "A", Vector2{0.0f, 0.0f}, editor.fontSize,
-                // 0, editor.editorTextColor); DrawTextEx(font, "B",
-                // Vector2{1.0f*editor.gridWidth, 0.0f*editor.gridHeight},
-                // editor.fontSize, 0, editor.editorTextColor); DrawTextEx(font,
-                // "C",
-                // Vector2{0.0f*editor.gridWidth, 1.0f*editor.gridHeight+editor.verticalLineSpacing},
-                // editor.fontSize, 0, editor.editorTextColor); DrawTextEx(font,
-                // "D",
-                // Vector2{1.0f*editor.gridWidth, 1.0f*editor.gridHeight+editor.verticalLineSpacing},
-                // editor.fontSize, 0, editor.editorTextColor);
-
                 int gridRows =
                     static_cast<int>(screenHeight / editor.gridHeight);
                 int gridCols = static_cast<int>(screenWidth / editor.gridWidth);
@@ -225,7 +239,7 @@ By Gholamreza Dar
             }
         }
 
-        // Draw the text
+        // Draw the text character by character
         {
             // Text
             for (int i = 0; i < numLines; i++) {
@@ -239,6 +253,13 @@ By Gholamreza Dar
             }
         }
 
+        // Draw the cursor
+        {
+            DrawRectangle(cursorPosition.x * editor.gridWidth + editor.windowPadding,
+                          (cursorPosition.y) * editor.gridHeight + cursorPosition.y * editor.verticalLineSpacing + editor.windowPadding,
+                          editor.gridWidth, editor.gridHeight,
+                          editor.editorCursorColor);
+        }
         EndDrawing();
     }
 

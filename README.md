@@ -3,7 +3,7 @@
 This is a featureless but very fast text editor written in C++ using raylib.
 I wanted to understand how text editors work under the hood.
 
-![demo image](images/demo_charbased.png)
+![demo image](images/demo_cursor.png)
 
 ## Features
 
@@ -11,15 +11,19 @@ I wanted to understand how text editors work under the hood.
 - Line numbers
 - Zoom in and out
 - Change vertical line spacing
+- Cursor movment
 
 ## How to use
 
 - Use `Ctrl + Q` to zoom out and `Ctrl + E` to zoom in
 - Use `Shift + Q` to decrease the vertical spacing and `Shift + E` to increase the vertical spacing
 - Use `Ctrl + G` to toggle the debug grid
+- Use Arrow keys to move the cursor
 
 ## Demos
 
+- Add cursor/cadet
+    ![demo image](images/demo_cursor.png)
 - Right Now!
     ![demo image](images/demo_charbased.png)
 - Added Shortcuts for changing line spacing
