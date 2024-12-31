@@ -3,6 +3,9 @@
 #include <vector>
 #include <sstream>
 
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
 std::string leftPad(std::string str, int length, char padChar = ' ')
 {
     if (str.length() >= length)

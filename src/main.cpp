@@ -6,6 +6,30 @@
 
 #include "utils.h"
 
+// struct for editor config
+struct EditorConfig {
+    // Sizes
+    float verticalLineSpacing;
+    float baseVerticalLineSpacing;
+    float editorZoom;
+    float zoomSpeed;
+    float fontSize;
+    float gridWidth;
+    float gridHeight;
+    float gridLineWidth;
+
+    // Colors
+    Color editorBackgroundColor;
+    Color editorTextColor;
+    Color editorLineNumbersColor;
+    Color editorVerticalLineColor;
+    Color editorCursorColor;
+    Color editorGridColor;
+
+    // debug
+    bool debugGrid = false;
+};
+
 int main(void) {
     // Create window
     int screenWidth = 1280;
@@ -16,20 +40,32 @@ int main(void) {
     InitWindow(screenWidth, screenHeight, "GHDcode");
     // SetTargetFPS(60);
 
-    // Editor Variables
-    const float line_x_offset = 10.0f;
-    const float scrollSpeed = 6.0f;
-    float editorZoom = 1.0f;
-    float vertical_line_padding = 10.0f;
-    float vertical_line_width_multiplier = 0.5f;
-    Color editorBackgroundColor = Color{13, 17, 23};
-    Color editorTextColor = Color{255, 255, 255, 255};
-    Color editorLineNumbersColor = Color{255, 255, 255, 100};
-    Color editorVerticalLineColor = Color{255, 255, 255, 16};
+    // Editor Config
+    EditorConfig editor{
+        .baseVerticalLineSpacing = 40.0f,
+        .editorZoom = 1.0f,
+        .zoomSpeed = 0.5f,
+        .fontSize = 16.0f,
+        .gridLineWidth = 2.0f,
+        .editorBackgroundColor = Color{13, 17, 23},
+        .editorTextColor = Color{255, 255, 255, 255},
+        .editorLineNumbersColor = Color{255, 255, 255, 100},
+        .editorVerticalLineColor = Color{255, 255, 255, 16},
+        .editorCursorColor = Color{47, 129, 247, 170},
+        .editorGridColor = Color{255, 0, 255, 100},
+        .debugGrid = true,
+
+    };
+    editor.verticalLineSpacing = editor.baseVerticalLineSpacing * editor.editorZoom;
+
+    Vector2 cursorPosition = Vector2{0.0f, 0.0f};
 
     // Load Fonts
     Font font =
         LoadFontEx("resources/fonts/FiraCode-Regular.ttf", 16, nullptr, 0);
+    
+    editor.gridWidth = MeasureTextEx(font, "A", editor.fontSize, 0).x;
+    editor.gridHeight = MeasureTextEx(font, "A", editor.fontSize, 0).y;
 
     // Data
     std::string textData = R"(Hello World!
@@ -48,8 +84,8 @@ test
 By Gholamreza Dar
     )";
 
-    std::vector<std::string> lines = splitLines(textData);
-    int numLines = lines.size();
+    std::vector<std::string> editorData = splitLines(textData);
+    int numLines = editorData.size();
 
     // Main loop (ESC to exit)
     while (!WindowShouldClose()) {
@@ -59,65 +95,77 @@ By Gholamreza Dar
         BeginDrawing();
 
         // Background
-        ClearBackground(editorBackgroundColor);
+        ClearBackground(editor.editorBackgroundColor);
 
         // FPS counter
         DrawFPS(screenWidth - 110, 10);
 
-        // Change editor zoom with control+scroll
-        if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyDown(KEY_Q)) {
-            editorZoom -= scrollSpeed * GetFrameTime();
-            editorZoom = editorZoom < 0.5f ? 0.5f : editorZoom;
-            editorZoom = editorZoom > 5.0f ? 5.0f : editorZoom;
-            if (editorZoom > 0.5f) {
-                UnloadFont(font);
-                int fontSize = int(16 * editorZoom);
-                font = LoadFontEx("resources/fonts/FiraCode-Regular.ttf",
-                                  fontSize, nullptr, 0);
+        // Change editor zoom with control+Q and control+E
+        {
+            if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_Q)) {
+                editor.editorZoom -= editor.zoomSpeed;
+                editor.editorZoom = MAX(0.5f, editor.editorZoom);
+                std::cout << "zoom: " << editor.editorZoom << std::endl;
+                if (editor.editorZoom > 0.5f) {
+                    // int fontSize = int(16 * editor.editorZoom);
+                    editor.fontSize = int(16 * editor.editorZoom);
+                    UnloadFont(font);
+                    font = LoadFontEx("resources/fonts/FiraCode-Regular.ttf",
+                                      editor.fontSize, nullptr, 0);
+                    editor.gridWidth =
+                        MeasureTextEx(font, "A", editor.fontSize, 0).x;
+                    editor.gridHeight =
+                        MeasureTextEx(font, "A", editor.fontSize, 0).y;
+                    editor.verticalLineSpacing = editor.baseVerticalLineSpacing * editor.editorZoom;
+                }
+            }
+            if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_E)) {
+                editor.editorZoom += editor.zoomSpeed;
+                editor.editorZoom = MIN(5.0f, editor.editorZoom);
+                std::cout << "zoom: " << editor.editorZoom << std::endl;
+                if (editor.editorZoom < 5.0f) {
+                    // int fontSize = int(16 * editor.editorZoom);
+                    editor.fontSize = int(16 * editor.editorZoom);
+                    UnloadFont(font);
+                    font = LoadFontEx("resources/fonts/FiraCode-Regular.ttf",
+                                      editor.fontSize, nullptr, 0);
+                    editor.gridWidth =
+                        MeasureTextEx(font, "A", editor.fontSize, 0).x;
+                    editor.gridHeight =
+                        MeasureTextEx(font, "A", editor.fontSize, 0).y;
+                    editor.verticalLineSpacing = editor.baseVerticalLineSpacing * editor.editorZoom;
+                }
             }
         }
-        if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyDown(KEY_E)) {
-            editorZoom += scrollSpeed * GetFrameTime();
-            editorZoom = editorZoom < 0.5f ? 0.5f : editorZoom;
-            editorZoom = editorZoom > 5.0f ? 5.0f : editorZoom;
-            if (editorZoom < 5.0f) {
-                UnloadFont(font);
-                int fontSize = int(16 * editorZoom);
-                font = LoadFontEx("resources/fonts/FiraCode-Regular.ttf",
-                                  fontSize, nullptr, 0);
+
+
+        // Working grid (this is a grid that every character can be placed on)
+        if(true)
+        {
+            // Debug text
+            DrawTextEx(font, "A", Vector2{0.0f, 0.0f}, editor.fontSize, 0, editor.editorTextColor);
+            DrawTextEx(font, "B", Vector2{1.0f*editor.gridWidth, 0.0f*editor.gridHeight}, editor.fontSize, 0, editor.editorTextColor);
+            DrawTextEx(font, "C", Vector2{0.0f*editor.gridWidth, 1.0f*editor.gridHeight+editor.verticalLineSpacing}, editor.fontSize, 0, editor.editorTextColor);
+            DrawTextEx(font, "D", Vector2{1.0f*editor.gridWidth, 1.0f*editor.gridHeight+editor.verticalLineSpacing}, editor.fontSize, 0, editor.editorTextColor);
+            
+
+            // Draw the grid
+            if (editor.debugGrid) {
+                int gridRows = static_cast<int>(screenHeight / editor.gridHeight);
+                int gridCols = static_cast<int>(screenWidth / editor.gridWidth);
+
+                // Draw vertical lines
+                for(int i=0; i<gridCols+1; i++) {
+                    DrawRectangle(i*editor.gridWidth, 0, editor.gridLineWidth, screenHeight, editor.editorGridColor);
+                }
+
+                // Draw Horizontal lines
+                for(int i=0; i<gridRows/2+1; i++) {
+                    DrawRectangle(0, i*editor.verticalLineSpacing + i*editor.gridHeight, screenWidth, editor.gridLineWidth, editor.editorGridColor);
+                    DrawRectangle(0, i*editor.verticalLineSpacing + (i+1)*editor.gridHeight, screenWidth, editor.gridLineWidth, editor.editorGridColor);
+                }
+
             }
-        }
-
-        // Line Numbers
-        SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
-        float numbers_font_size = font.baseSize * editorZoom;
-        numbers_font_size = font.baseSize;
-        for (int i = 0; i < numLines; i++) {
-            float x = line_x_offset;
-            float y = 10.0f + i * numbers_font_size;
-            std::string line_number_text = leftPad(std::to_string(i + 1), 3);
-            DrawTextEx(font, line_number_text.c_str(), Vector2{x, y},
-                       numbers_font_size, 0, editorLineNumbersColor);
-        }
-
-        float numbers_max_width =
-            MeasureTextEx(font, leftPad(std::to_string(numLines), 3).c_str(),
-                          numbers_font_size, 0).x;
-        // Vertical Line (right side of the numbers)
-        DrawRectangle(line_x_offset + numbers_max_width + vertical_line_padding * editorZoom * 0.5,
-                      10.0f,
-                      vertical_line_width_multiplier * editorZoom * 2 < 1.0f
-                          ? 1.0f
-                          : vertical_line_width_multiplier * editorZoom * 2,
-                      screenHeight - 20.0f, editorVerticalLineColor);
-
-        // Text
-        for (int i = 0; i < numLines; i++) {
-            float x = line_x_offset + numbers_max_width + vertical_line_padding * 2 * editorZoom;
-            float y = 10.0f + i * numbers_font_size;
-            std::string line_text = lines[i];
-            DrawTextEx(font, line_text.c_str(), Vector2{x, y},
-                       numbers_font_size, 0, editorTextColor);
         }
 
         EndDrawing();
