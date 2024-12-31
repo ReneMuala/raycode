@@ -1,18 +1,25 @@
-# GHDraylib
+# GHDcode
 
-A very simple raylib example project using CMake.
+This is a featureless but very fast text editor written in C++ using raylib.
+I wanted to understand how text editors work under the hood.
 
-![demo image](demo.png)
+![demo image](images/demo2.png)
 
 ## Features
 
-- Camera
-- 2D drawing (Text)
-- 3D drawing (Cube, Grid)
-- FPS counter
+- Line numbers
+- Display basic text
+- Zoom in and out
 
 ## How to use
 
-clone this repo and open it using your CMake enabled IDE/editor!
+- Use `Ctrl + Q` to zoom out and `Ctrl + E` to zoom in
 
-CMakeLists.txt is mostly taken from [raylib-game-template](https://github.com/raysan5/raylib-game-template/blob/main/CMakeLists.txt)
+## Build
+
+Build using CMake.
+
+```sh
+cmake -B build -S .
+cmake --build build --config Debug
+```

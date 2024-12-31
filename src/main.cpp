@@ -1,64 +1,131 @@
 #include <raylib.h>
 
-int main(void)
-{
-    const int screenWidth = 800;
-    const int screenHeight = 450;
+#include <iostream>
+#include <string>
+#include <vector>
 
-    // Set up the camera
-    Camera3D camera = {};
-    camera.position = (Vector3){ 8.0f, 8.0f, 8.0f };  // Camera position
-    camera.target = (Vector3){ 0.0f, 0.0f, 0.0f };      // Camera looking at point
-    camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
-    camera.fovy = 55.0f;                                // Camera field-of-view Y
-    camera.projection = CAMERA_PERSPECTIVE;             // Camera mode type
+#include "utils.h"
 
-
-    InitWindow(screenWidth, screenHeight, "GHDraylib");
-
-    SetTargetFPS(60);
-    // DisableCursor();
+int main(void) {
+    // Create window
+    int screenWidth = 1280;
+    int screenHeight = 720;
+    // SetTraceLogLevel(LOG_NONE);
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     SetConfigFlags(FLAG_MSAA_4X_HINT);
+    InitWindow(screenWidth, screenHeight, "GHDcode");
+    // SetTargetFPS(60);
 
+    // Editor Variables
+    const float line_x_offset = 10.0f;
+    const float scrollSpeed = 6.0f;
+    float editorZoom = 1.0f;
+    float vertical_line_padding = 10.0f;
+    float vertical_line_width_multiplier = 0.5f;
+    Color editorBackgroundColor = Color{13, 17, 23};
+    Color editorTextColor = Color{255, 255, 255, 255};
+    Color editorLineNumbersColor = Color{255, 255, 255, 100};
+    Color editorVerticalLineColor = Color{255, 255, 255, 16};
+
+    // Load Fonts
+    Font font =
+        LoadFontEx("resources/fonts/FiraCode-Regular.ttf", 16, nullptr, 0);
+
+    // Data
+    std::string textData = R"(Hello World!
+
+This is GHDcode, a featureless and fast text editor
+written using raylib.
+
+test
+test
+test
+test
+test
+test
+test
+
+By Gholamreza Dar
+    )";
+
+    std::vector<std::string> lines = splitLines(textData);
+    int numLines = lines.size();
 
     // Main loop (ESC to exit)
-    bool firstFrame = true;
-    while(!WindowShouldClose())
-    {
-        // Update
-        UpdateCamera(&camera, CAMERA_ORBITAL);
-        // Draw
+    while (!WindowShouldClose()) {
+        screenWidth = GetScreenWidth();
+        screenHeight = GetScreenHeight();
+
         BeginDrawing();
 
-        // bg
-        ClearBackground(Color{25, 25, 25, 255});
+        // Background
+        ClearBackground(editorBackgroundColor);
 
-        // 3D stuff
-        BeginMode3D(camera);
-        // cube
-        DrawCube(Vector3{0, 1, 0}, 2.0f, 2.0f, 2.0f, RED);
-        // light
+        // FPS counter
+        DrawFPS(screenWidth - 110, 10);
 
-        DrawGrid(10, 1.0f);
-        EndMode3D();
+        // Change editor zoom with control+scroll
+        if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyDown(KEY_Q)) {
+            editorZoom -= scrollSpeed * GetFrameTime();
+            editorZoom = editorZoom < 0.5f ? 0.5f : editorZoom;
+            editorZoom = editorZoom > 5.0f ? 5.0f : editorZoom;
+            if (editorZoom > 0.5f) {
+                UnloadFont(font);
+                int fontSize = int(16 * editorZoom);
+                font = LoadFontEx("resources/fonts/FiraCode-Regular.ttf",
+                                  fontSize, nullptr, 0);
+            }
+        }
+        if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyDown(KEY_E)) {
+            editorZoom += scrollSpeed * GetFrameTime();
+            editorZoom = editorZoom < 0.5f ? 0.5f : editorZoom;
+            editorZoom = editorZoom > 5.0f ? 5.0f : editorZoom;
+            if (editorZoom < 5.0f) {
+                UnloadFont(font);
+                int fontSize = int(16 * editorZoom);
+                font = LoadFontEx("resources/fonts/FiraCode-Regular.ttf",
+                                  fontSize, nullptr, 0);
+            }
+        }
 
+        // Line Numbers
+        SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
+        float numbers_font_size = font.baseSize * editorZoom;
+        numbers_font_size = font.baseSize;
+        for (int i = 0; i < numLines; i++) {
+            float x = line_x_offset;
+            float y = 10.0f + i * numbers_font_size;
+            std::string line_number_text = leftPad(std::to_string(i + 1), 3);
+            DrawTextEx(font, line_number_text.c_str(), Vector2{x, y},
+                       numbers_font_size, 0, editorLineNumbersColor);
+        }
 
-        // text
-        int textWidth = MeasureText("GHDraylib", 40);
-        DrawText("GHDraylib", screenWidth/2-textWidth/2, 15, 40, RAYWHITE);
+        float numbers_max_width =
+            MeasureTextEx(font, leftPad(std::to_string(numLines), 3).c_str(),
+                          numbers_font_size, 0).x;
+        // Vertical Line (right side of the numbers)
+        DrawRectangle(line_x_offset + numbers_max_width + vertical_line_padding * editorZoom * 0.5,
+                      10.0f,
+                      vertical_line_width_multiplier * editorZoom * 2 < 1.0f
+                          ? 1.0f
+                          : vertical_line_width_multiplier * editorZoom * 2,
+                      screenHeight - 20.0f, editorVerticalLineColor);
 
-        // fps
-        DrawFPS(10, 10);
-
-        // sphere
-        // DrawSphere(Vector3{0, 0, 2}, 1, Color{255, 255, 255, 255});
-        // DrawSphereWires(Vector3{0, 0, 0}, 1, 8, 8, Color{255, 255, 255, 255});
-
-        // DrawGrid(10, 1);
+        // Text
+        for (int i = 0; i < numLines; i++) {
+            float x = line_x_offset + numbers_max_width + vertical_line_padding * 2 * editorZoom;
+            float y = 10.0f + i * numbers_font_size;
+            std::string line_text = lines[i];
+            DrawTextEx(font, line_text.c_str(), Vector2{x, y},
+                       numbers_font_size, 0, editorTextColor);
+        }
 
         EndDrawing();
     }
 
+    // De-Initialization
+    UnloadFont(font);
     CloseWindow();
+
     return 0;
 }
