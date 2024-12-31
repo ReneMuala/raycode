@@ -7,9 +7,10 @@ I wanted to understand how text editors work under the hood.
 
 ## Features
 
-- Line numbers
 - Display basic text
+- Line numbers
 - Zoom in and out
+- Change vertical line spacing
 
 ## How to use
 
@@ -23,7 +24,7 @@ I wanted to understand how text editors work under the hood.
     ![demo image](images/demo_charbased.png)
 - Added Shortcuts for changing line spacing
     ![demo image](images/demo_charbased_grid.png)
-- Added Line numbers and Text
+- Added Line numbers and Text + padding
     ![demo image](images/demo_linespacing_and_text.png)
 - Add vertical line spacing 
     ![demo image](images/demo_linespacing.png)
