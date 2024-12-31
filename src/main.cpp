@@ -9,6 +9,7 @@
 // struct for editor config
 struct EditorConfig {
     // Sizes
+    float windowPadding;
     float verticalLineSpacing;
     float baseVerticalLineSpacing;
     float editorZoom;
@@ -42,6 +43,7 @@ int main(void) {
 
     // Editor Config
     EditorConfig editor{
+        .windowPadding = 10.0f,
         .baseVerticalLineSpacing = 40.0f,
         .editorZoom = 1.0f,
         .zoomSpeed = 0.5f,
@@ -138,36 +140,53 @@ By Gholamreza Dar
             }
         }
 
+        // Toggle debug grid with CTRL+G
+        if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_G)) {
+            editor.debugGrid = !editor.debugGrid;
+        }
+
 
         // Working grid (this is a grid that every character can be placed on)
         if(true)
         {
-            // Debug text
-            DrawTextEx(font, "A", Vector2{0.0f, 0.0f}, editor.fontSize, 0, editor.editorTextColor);
-            DrawTextEx(font, "B", Vector2{1.0f*editor.gridWidth, 0.0f*editor.gridHeight}, editor.fontSize, 0, editor.editorTextColor);
-            DrawTextEx(font, "C", Vector2{0.0f*editor.gridWidth, 1.0f*editor.gridHeight+editor.verticalLineSpacing}, editor.fontSize, 0, editor.editorTextColor);
-            DrawTextEx(font, "D", Vector2{1.0f*editor.gridWidth, 1.0f*editor.gridHeight+editor.verticalLineSpacing}, editor.fontSize, 0, editor.editorTextColor);
-            
-
             // Draw the grid
             if (editor.debugGrid) {
+                // Debug text
+                // DrawTextEx(font, "A", Vector2{0.0f, 0.0f}, editor.fontSize, 0, editor.editorTextColor);
+                // DrawTextEx(font, "B", Vector2{1.0f*editor.gridWidth, 0.0f*editor.gridHeight}, editor.fontSize, 0, editor.editorTextColor);
+                // DrawTextEx(font, "C", Vector2{0.0f*editor.gridWidth, 1.0f*editor.gridHeight+editor.verticalLineSpacing}, editor.fontSize, 0, editor.editorTextColor);
+                // DrawTextEx(font, "D", Vector2{1.0f*editor.gridWidth, 1.0f*editor.gridHeight+editor.verticalLineSpacing}, editor.fontSize, 0, editor.editorTextColor);
+
                 int gridRows = static_cast<int>(screenHeight / editor.gridHeight);
                 int gridCols = static_cast<int>(screenWidth / editor.gridWidth);
 
                 // Draw vertical lines
                 for(int i=0; i<gridCols+1; i++) {
-                    DrawRectangle(i*editor.gridWidth, 0, editor.gridLineWidth, screenHeight, editor.editorGridColor);
+                    DrawRectangle(i*editor.gridWidth + editor.windowPadding, editor.windowPadding, editor.gridLineWidth, screenHeight-editor.windowPadding*2, editor.editorGridColor);
                 }
 
                 // Draw Horizontal lines
                 for(int i=0; i<gridRows/2+1; i++) {
-                    DrawRectangle(0, i*editor.verticalLineSpacing + i*editor.gridHeight, screenWidth, editor.gridLineWidth, editor.editorGridColor);
-                    DrawRectangle(0, i*editor.verticalLineSpacing + (i+1)*editor.gridHeight, screenWidth, editor.gridLineWidth, editor.editorGridColor);
+                    DrawRectangle(editor.windowPadding, i*editor.verticalLineSpacing + i*editor.gridHeight + editor.windowPadding, screenWidth - editor.windowPadding*2, editor.gridLineWidth, editor.editorGridColor);
+                    DrawRectangle(editor.windowPadding, i*editor.verticalLineSpacing + (i+1)*editor.gridHeight + editor.windowPadding, screenWidth - editor.windowPadding*2, editor.gridLineWidth, editor.editorGridColor);
                 }
 
             }
         }
-
+        
+        // Draw the line numbers
+        {
+            // Line Numbers
+            SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
+            for (int i = 0; i < numLines; i++) {
+                float x = editor.windowPadding;
+                float y = i * editor.verticalLineSpacing + i * editor.gridHeight + editor.windowPadding;
+                std::string line_number_text = leftPad(std::to_string(i + 1), 3);
+                DrawTextEx(font, line_number_text.c_str(), Vector2{x, y},
+                           editor.fontSize, 0, editor.editorLineNumbersColor);
+            }
+        }
+        
         EndDrawing();
     }
 
