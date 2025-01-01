@@ -1,0 +1,14 @@
+Hello World!
+
+This is GHDcode, a featureless and fast text editor
+written using raylib.
+
+test, read from a file!
+test
+test
+test
+test
+test
+test
+
+By Gholamreza Dar

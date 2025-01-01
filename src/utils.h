@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <fstream>
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -30,4 +31,25 @@ std::vector<std::string> splitLines(const std::string& input) {
     }
     
     return lines;
+}
+
+// file utilities //
+
+std::string readFile(const std::string& filename) {
+    std::ifstream file(filename);
+    std::string content((std::istreambuf_iterator<char>(file)),
+                        std::istreambuf_iterator<char>());
+    return content;
+}
+
+void writeFile(const std::string& filename, const std::string& content) {
+    std::ofstream file(filename);
+    file << content;
+}
+
+std::string readFileFromCommandLine(int argc, char** argv) {
+    if (argc < 2) {
+        return "";
+    }
+    return readFile(argv[1]);
 }

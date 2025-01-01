@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "utils.h"
+#include "EditorData.h"
 
 // struct for editor config
 struct EditorConfig {
@@ -59,7 +60,7 @@ int main(void) {
         .editorVerticalLineColor = Color{255, 255, 255, 16},
         .editorCursorColor = Color{47, 129, 247, 170},
         .editorGridColor = Color{255, 0, 255, 100},
-        .debugGrid = true,
+        .debugGrid = false,
 
     };
     editor.verticalLineSpacing =
@@ -93,10 +94,20 @@ test
 
 By Gholamreza Dar
     )";
+    
+    // read from file
+    textData = readFile("resources/sample.txt");
+    EditorData editorData(textData);
 
-    std::vector<std::string> editorData = splitLines(textData);
-    int numLines = editorData.size();
-
+    // test the text editing functions
+    editorData.insertLine(0, "Hello World!"); // works
+    editorData.insertLine(1, "This is a test"); // works
+    editorData.deleteLine(0); // works
+    editorData.insertLineBreak(0, 5); // works
+    editorData.insertChar(0, 5, 'z'); // works
+    editorData.insertChar(0, 5, 'z'); // works
+    editorData.insertChar(0, 5, 'z'); // works
+    editorData.insertChar(0, 50, 'z'); // works but make sure youre not out of bounds
     // Main loop (ESC to exit)
     while (!WindowShouldClose()) {
         screenWidth = GetScreenWidth();
@@ -171,22 +182,22 @@ By Gholamreza Dar
             }
 
             // Cursor movement
-            if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_H)) {
+            if (IsKeyPressed(KEY_LEFT) || (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_H))) {
                 cursorPosition.x -= 1;
                 cursorPosition.x = MAX(editor.lineNumberWidth + editor.spaceBetweenNumbersAndText, cursorPosition.x);
             }
-            if (IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_L)) {
+            if (IsKeyPressed(KEY_RIGHT) || (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_L))) {
                 cursorPosition.x += 1;
                 // TODO: not 80! limit the line width
                 cursorPosition.x = MIN(80, cursorPosition.x);
             }
-            if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_K)) {
+            if (IsKeyPressed(KEY_UP) || (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_K))) {
                 cursorPosition.y -= 1;
                 cursorPosition.y = MAX(0, cursorPosition.y);
             }
-            if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_J)) {
+            if (IsKeyPressed(KEY_DOWN) || (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_J))) {
                 cursorPosition.y += 1;
-                cursorPosition.y = MIN(numLines - 1, cursorPosition.y);
+                cursorPosition.y = MIN(editorData.getNumLines() - 1, cursorPosition.y);
             }
         }
 
@@ -228,7 +239,7 @@ By Gholamreza Dar
         {
             // Line Numbers
             SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
-            for (int i = 0; i < numLines; i++) {
+            for (int i = 0; i < editorData.getNumLines(); i++) {
                 float x = editor.windowPadding;
                 float y = i * editor.verticalLineSpacing +
                           i * editor.gridHeight + editor.windowPadding;
@@ -242,12 +253,12 @@ By Gholamreza Dar
         // Draw the text character by character
         {
             // Text
-            for (int i = 0; i < numLines; i++) {
+            for (int i = 0; i < editorData.getNumLines(); i++) {
                 float x = editor.windowPadding +
                           editor.gridWidth * (editor.lineNumberWidth + 2);
                 float y = i * editor.verticalLineSpacing +
                           i * editor.gridHeight + editor.windowPadding;
-                std::string line_text = editorData[i];
+                std::string line_text = editorData.getLine(i);
                 DrawTextEx(font, line_text.c_str(), Vector2{x, y},
                            editor.fontSize, 0, editor.editorTextColor);
             }
