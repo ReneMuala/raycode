@@ -10,7 +10,14 @@
 - [x] Insert text at cursor
 - [x] Delete text at cursor (backspace)
 - [x] Enter key should insert a new line
-- [ ] undo/redo
+- [ ] Undo/Redo
+- [ ] Select text (Shift+Movement) or (Ctrl+A)
+- [ ] Copy selected text (Ctrl+C)
+- [ ] Paste text (Ctrl+V)
+- [ ] Cut selected text (Ctrl+X)
+- [ ] Delete selected text
+- [ ] New file (Ctrl+N)
+- [ ] Save file (Ctrl+S)
 
 ## File
 
