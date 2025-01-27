@@ -194,6 +194,68 @@ By Gholamreza Dar
                     editor.baseVerticalLineSpacing * editor.editorZoom;
             }
 
+            // Handle editor input (typing, deleting, etc.)
+            {
+                // Insert character by typing
+                {
+                    int key;
+                    while ((key = GetCharPressed()) !=
+                           0) {  // Check if a key is pressed
+                        if (key >= 32 &&
+                            key <=
+                                126) {  // Filter for printable ASCII characters
+                            // Convert from grid space to line space
+                            int charNumber = cursorPosition.x -
+                                             editor.lineNumberWidth -
+                                             editor.spaceBetweenNumbersAndText;
+                            editorData.insertChar(cursorPosition.y, charNumber,
+                                                  (char)key);
+                            // move cursor to the right
+                            // TODO: do we need to change the last cursor
+                            // position?
+                            cursorPosition.x++;
+                        }
+                    }
+                }
+
+                // Delete character by pressing backspace
+                {
+                    if (IsKeyPressed(KEY_BACKSPACE)) {
+                        // TODO: doesn't work
+                        // Convert from grid space to line space
+                        int charNumber = cursorPosition.x -
+                                         editor.lineNumberWidth -
+                                         editor.spaceBetweenNumbersAndText;
+                        editorData.deleteChar(cursorPosition.y, charNumber);
+                        // move cursor to the left
+                        cursorPosition.x--;
+                        // clamp cursor to the line width
+                        cursorPosition.x = MAX(
+                            editor.lineNumberWidth +
+                                editor.spaceBetweenNumbersAndText,
+                            cursorPosition.x);
+                    }
+                }
+
+                // new line by pressing enter
+                {
+                    if (IsKeyPressed(KEY_ENTER)) {
+                        // Convert from grid space to line space
+                        int charNumber = cursorPosition.x -
+                                         editor.lineNumberWidth -
+                                         editor.spaceBetweenNumbersAndText;
+                        editorData.insertLineBreak(cursorPosition.y,
+                                                   charNumber);
+                        // move cursor to the left
+                        // TODO: do we need to change the last cursor
+                        // position?
+                        cursorPosition.x = editor.lineNumberWidth +
+                                           editor.spaceBetweenNumbersAndText;
+                        cursorPosition.y++;
+                    }
+                }
+            }
+
             // Cursor movement
             if (IsKeyPressed(KEY_LEFT) ||
                 (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_H))) {
@@ -217,7 +279,8 @@ By Gholamreza Dar
                 (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_K))) {
                 cursorPosition.y -= 1;
                 cursorPosition.y = MAX(0, cursorPosition.y);
-                // also set the x position to the max of position and lastCursorPositionX
+                // also set the x position to the max of position and
+                // lastCursorPositionX
                 cursorPosition.x = MAX(cursorPosition.x, lastCursorPositionX);
             }
             if (IsKeyPressed(KEY_DOWN) ||
@@ -225,7 +288,8 @@ By Gholamreza Dar
                 cursorPosition.y += 1;
                 cursorPosition.y =
                     MIN(editorData.getNumLines() - 1, cursorPosition.y);
-                // also set the x position to the max of position and lastCursorPositionX
+                // also set the x position to the max of position and
+                // lastCursorPositionX
                 cursorPosition.x = MAX(cursorPosition.x, lastCursorPositionX);
             }
 
@@ -255,7 +319,7 @@ By Gholamreza Dar
 
         // debug cursor position
         {
-            if (true) {
+            if (false) {
                 std::cout << "cursor x: " << cursorPosition.x << std::endl;
                 std::cout << "last cursor x: " << lastCursorPositionX
                           << std::endl;
@@ -301,6 +365,7 @@ By Gholamreza Dar
         {
             // Line Numbers
             SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
+            // TODO: dont start from 0, have a viewport start, end
             for (int i = 0; i < editorData.getNumLines(); i++) {
                 float x = editor.windowPadding;
                 float y = i * editor.verticalLineSpacing +
@@ -315,6 +380,7 @@ By Gholamreza Dar
         // Draw the text character by character
         {
             // Text
+            // TODO: dont start from 0, have a viewport start, end
             for (int i = 0; i < editorData.getNumLines(); i++) {
                 float x = editor.windowPadding +
                           editor.gridWidth * (editor.lineNumberWidth + 2);
