@@ -19,9 +19,18 @@ I wanted to understand how text editors work under the hood.
 - Use `Shift + Q` to decrease the vertical spacing and `Shift + E` to increase the vertical spacing
 - Use `Ctrl + G` to toggle the debug grid
 - Use Arrow keys to move the cursor
+- Type any character to insert a character (lower+upper case, numbers)
+- Type `Backspace` to delete a character
+- Type `Tab` to insert 4 spaces
+
+## TODO
+
+View TODO.md for a list of features to be implemented.
 
 ## Demos
 
+- Text Input works + TAB handling
+    ![demo image](images/tabs_text_input.png)
 - Add cursor/cadet
     ![demo image](images/demo_cursor.png)
 - Right Now!
