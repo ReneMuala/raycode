@@ -1,11 +1,12 @@
+#include <math.h>
 #include <raylib.h>
 
 #include <iostream>
 #include <string>
 #include <vector>
 
-#include "utils.h"
 #include "EditorData.h"
+#include "utils.h"
 
 // struct for editor config
 struct EditorConfig {
@@ -21,6 +22,7 @@ struct EditorConfig {
     float gridWidth;
     float gridHeight;
     float gridLineWidth;
+    float cursorBlinkSpeed;
 
     // Colors
     Color editorBackgroundColor;
@@ -54,6 +56,7 @@ int main(void) {
         .zoomSpeed = 0.5f,
         .fontSize = 16.0f,
         .gridLineWidth = 2.0f,
+        .cursorBlinkSpeed = 10.0f,
         .editorBackgroundColor = Color{13, 17, 23},
         .editorTextColor = Color{255, 255, 255, 255},
         .editorLineNumbersColor = Color{255, 255, 255, 100},
@@ -68,12 +71,14 @@ int main(void) {
     editor.fontSize = int(16 * editor.editorZoom);
 
     Vector2 cursorPosition = Vector2{0.0f, 0.0f};
-    cursorPosition.x = editor.lineNumberWidth + editor.spaceBetweenNumbersAndText;
+    cursorPosition.x =
+        editor.lineNumberWidth + editor.spaceBetweenNumbersAndText;
     cursorPosition.y = 0;
+    float lastCursorPositionX = cursorPosition.x;
 
     // Load Fonts
-    Font font =
-        LoadFontEx("resources/fonts/FiraCode-Regular.ttf", editor.fontSize, nullptr, 0);
+    Font font = LoadFontEx("resources/fonts/FiraCode-Regular.ttf",
+                           editor.fontSize, nullptr, 0);
 
     editor.gridWidth = MeasureTextEx(font, "A", editor.fontSize, 0).x;
     editor.gridHeight = MeasureTextEx(font, "A", editor.fontSize, 0).y;
@@ -94,20 +99,27 @@ test
 
 By Gholamreza Dar
     )";
-    
+
     // read from file
     textData = readFile("resources/sample.txt");
+
+    // read from command line
+    // textData = readFileFromCommandLine(argc, argv);
+
+    // convert loaded text to EditorData
     EditorData editorData(textData);
 
     // test the text editing functions
-    editorData.insertLine(0, "Hello World!"); // works
-    editorData.insertLine(1, "This is a test"); // works
-    editorData.deleteLine(0); // works
-    editorData.insertLineBreak(0, 5); // works
-    editorData.insertChar(0, 5, 'z'); // works
-    editorData.insertChar(0, 5, 'z'); // works
-    editorData.insertChar(0, 5, 'z'); // works
-    editorData.insertChar(0, 50, 'z'); // works but make sure youre not out of bounds
+    // editorData.insertLine(0, "Hello World!"); // works
+    // editorData.insertLine(1, "This is a test"); // works
+    // editorData.deleteLine(0); // works
+    // editorData.insertLineBreak(0, 5); // works
+    // editorData.insertChar(0, 5, 'z'); // works
+    // editorData.insertChar(0, 5, 'z'); // works
+    // editorData.insertChar(0, 5, 'z'); // works
+    // editorData.insertChar(0, 50, 'z'); // works but make sure youre not out
+    // of bounds
+
     // Main loop (ESC to exit)
     while (!WindowShouldClose()) {
         screenWidth = GetScreenWidth();
@@ -160,6 +172,7 @@ By Gholamreza Dar
                         editor.baseVerticalLineSpacing * editor.editorZoom;
                 }
             }
+
             // Toggle debug grid with CTRL+G
             if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_G)) {
                 editor.debugGrid = !editor.debugGrid;
@@ -182,22 +195,71 @@ By Gholamreza Dar
             }
 
             // Cursor movement
-            if (IsKeyPressed(KEY_LEFT) || (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_H))) {
+            if (IsKeyPressed(KEY_LEFT) ||
+                (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_H))) {
                 cursorPosition.x -= 1;
-                cursorPosition.x = MAX(editor.lineNumberWidth + editor.spaceBetweenNumbersAndText, cursorPosition.x);
+                cursorPosition.x = MAX(
+                    editor.lineNumberWidth + editor.spaceBetweenNumbersAndText,
+                    cursorPosition.x);
+                lastCursorPositionX = cursorPosition.x;
             }
-            if (IsKeyPressed(KEY_RIGHT) || (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_L))) {
+            if (IsKeyPressed(KEY_RIGHT) ||
+                (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_L))) {
                 cursorPosition.x += 1;
-                // TODO: not 80! limit the line width
-                cursorPosition.x = MIN(80, cursorPosition.x);
+                cursorPosition.x =
+                    MIN(editorData.getLine(cursorPosition.y).size() +
+                            editor.lineNumberWidth +
+                            editor.spaceBetweenNumbersAndText,
+                        cursorPosition.x);
+                lastCursorPositionX = cursorPosition.x;
             }
-            if (IsKeyPressed(KEY_UP) || (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_K))) {
+            if (IsKeyPressed(KEY_UP) ||
+                (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_K))) {
                 cursorPosition.y -= 1;
                 cursorPosition.y = MAX(0, cursorPosition.y);
+                // also set the x position to the max of position and lastCursorPositionX
+                cursorPosition.x = MAX(cursorPosition.x, lastCursorPositionX);
             }
-            if (IsKeyPressed(KEY_DOWN) || (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_J))) {
+            if (IsKeyPressed(KEY_DOWN) ||
+                (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_J))) {
                 cursorPosition.y += 1;
-                cursorPosition.y = MIN(editorData.getNumLines() - 1, cursorPosition.y);
+                cursorPosition.y =
+                    MIN(editorData.getNumLines() - 1, cursorPosition.y);
+                // also set the x position to the max of position and lastCursorPositionX
+                cursorPosition.x = MAX(cursorPosition.x, lastCursorPositionX);
+            }
+
+            // if the cursor is out of bounds, clamp it to the current line
+            // width
+            if (cursorPosition.x > editorData.getLine(cursorPosition.y).size() +
+                                       editor.lineNumberWidth +
+                                       editor.spaceBetweenNumbersAndText) {
+                // Save the last cursor position.x
+                lastCursorPositionX =
+                    MAX(lastCursorPositionX, cursorPosition.x);
+
+                // Clamp cursor x position to the current line width
+                cursorPosition.x = editorData.getLine(cursorPosition.y).size() +
+                                   editor.lineNumberWidth +
+                                   editor.spaceBetweenNumbersAndText;
+            }
+
+            // reload the last cursor position.x if possible
+            if (lastCursorPositionX >= cursorPosition.x &&
+                lastCursorPositionX <=
+                    editorData.getLine(cursorPosition.y).size() +
+                        editor.lineNumberWidth +
+                        editor.spaceBetweenNumbersAndText) {
+            }
+        }
+
+        // debug cursor position
+        {
+            if (true) {
+                std::cout << "cursor x: " << cursorPosition.x << std::endl;
+                std::cout << "last cursor x: " << lastCursorPositionX
+                          << std::endl;
+                std::cout << "-------------------------------" << std::endl;
             }
         }
 
@@ -266,10 +328,21 @@ By Gholamreza Dar
 
         // Draw the cursor
         {
-            DrawRectangle(cursorPosition.x * editor.gridWidth + editor.windowPadding,
-                          (cursorPosition.y) * editor.gridHeight + cursorPosition.y * editor.verticalLineSpacing + editor.windowPadding,
-                          editor.gridWidth, editor.gridHeight,
-                          editor.editorCursorColor);
+            float cursorOpacity =
+                sin(GetTime() * editor.cursorBlinkSpeed) * 0.5f + 0.5f;
+            cursorOpacity = MIN(cursorOpacity, 0.8f);
+            Color cursorColor = Color{
+                editor.editorCursorColor.r,
+                editor.editorCursorColor.g,
+                editor.editorCursorColor.b,
+                static_cast<unsigned char>(cursorOpacity * 255),
+            };
+            DrawRectangle(
+                cursorPosition.x * editor.gridWidth + editor.windowPadding,
+                (cursorPosition.y) * editor.gridHeight +
+                    cursorPosition.y * editor.verticalLineSpacing +
+                    editor.windowPadding,
+                editor.gridWidth, editor.gridHeight, cursorColor);
         }
         EndDrawing();
     }
