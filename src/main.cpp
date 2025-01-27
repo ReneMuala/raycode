@@ -95,7 +95,7 @@ test
 test
 test
 test
-test
+\ttest
 
 By Gholamreza Dar
     )";
@@ -252,6 +252,41 @@ By Gholamreza Dar
                         cursorPosition.x = editor.lineNumberWidth +
                                            editor.spaceBetweenNumbersAndText;
                         cursorPosition.y++;
+                    }
+                }
+
+                // Delete line by pressing Ctrl+D 
+                // TODO: doesn't work has edge case bugs (delete first line to see)
+                {
+                    if (IsKeyPressed(KEY_D) &&
+                        IsKeyDown(KEY_LEFT_CONTROL)) {
+                        // Convert from grid space to line space
+                        int charNumber = cursorPosition.x -
+                                         editor.lineNumberWidth -
+                                         editor.spaceBetweenNumbersAndText;
+                        editorData.deleteLine(cursorPosition.y);
+                        // move cursor to the left
+                        cursorPosition.x = editor.lineNumberWidth +
+                                           editor.spaceBetweenNumbersAndText;
+                        cursorPosition.y--;
+                        // clamp cursor to the line width
+                        cursorPosition.x = MAX(
+                            editor.lineNumberWidth +
+                                editor.spaceBetweenNumbersAndText,
+                            cursorPosition.x);
+                    }
+                }
+
+                // Tab key
+                {
+                    if (IsKeyPressed(KEY_TAB)) {
+                        // Convert from grid space to line space
+                        int charNumber = cursorPosition.x -
+                                         editor.lineNumberWidth -
+                                         editor.spaceBetweenNumbersAndText;
+                        editorData.insertChar(cursorPosition.y, charNumber, '\t');
+                        // move cursor to the right
+                        cursorPosition.x += 4;
                     }
                 }
             }
