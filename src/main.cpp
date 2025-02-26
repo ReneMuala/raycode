@@ -220,8 +220,8 @@ By Gholamreza Dar
 
                 // Delete character by pressing backspace
                 {
-                    if (IsKeyPressed(KEY_BACKSPACE)) {
-                        // TODO: doesn't work
+                    while(IsKeyPressed(KEY_BACKSPACE)) {
+                    // if (IsKeyPressed(KEY_BACKSPACE)) {
                         // Convert from grid space to line space
                         int charNumber = cursorPosition.x -
                                          editor.lineNumberWidth -

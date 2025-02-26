@@ -37,7 +37,7 @@ class EditorData {
             char_number > lines[line_number].size()) {
             return;
         }
-        // TODO: Convert TAB to 4 spaces
+
         if (c == '\t') {
             c = ' ';
             for (int i = 0; i < 4; i++) {
@@ -51,7 +51,8 @@ class EditorData {
     }
 
     void deleteChar(int line_number, int char_number) {
-        lines[line_number].erase(char_number);
+        // delete a single character from a vector of characters
+        lines[line_number].erase(lines[line_number].begin() + char_number);
     }
 
     void insertLineBreak(int line_number, int char_number) {
