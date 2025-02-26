@@ -9,7 +9,8 @@
 #include "utils.h"
 
 // struct for editor config
-struct EditorConfig {
+struct EditorConfig
+{
     // Sizes
     float windowPadding;
     float verticalLineSpacing;
@@ -36,7 +37,8 @@ struct EditorConfig {
     bool debugGrid = false;
 };
 
-int main(void) {
+int main(void)
+{
     // Create window
     int screenWidth = 1280;
     int screenHeight = 720;
@@ -106,6 +108,10 @@ By Gholamreza Dar
     // read from command line
     // textData = readFileFromCommandLine(argc, argv);
 
+    // empty text
+    //TODO: Segmentation fault with empty text
+    textData = "\n";
+
     // convert loaded text to EditorData
     EditorData editorData(textData);
 
@@ -121,7 +127,8 @@ By Gholamreza Dar
     // of bounds
 
     // Main loop (ESC to exit)
-    while (!WindowShouldClose()) {
+    while (!WindowShouldClose())
+    {
         screenWidth = GetScreenWidth();
         screenHeight = GetScreenHeight();
 
@@ -136,11 +143,13 @@ By Gholamreza Dar
         // UI
         {
             // Change editor zoom with control+Q and control+E
-            if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_Q)) {
+            if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_Q))
+            {
                 editor.editorZoom -= editor.zoomSpeed;
                 editor.editorZoom = MAX(0.5f, editor.editorZoom);
                 std::cout << "zoom: " << editor.editorZoom << std::endl;
-                if (editor.editorZoom > 0.5f) {
+                if (editor.editorZoom > 0.5f)
+                {
                     // int fontSize = int(16 * editor.editorZoom);
                     editor.fontSize = int(16 * editor.editorZoom);
                     UnloadFont(font);
@@ -154,11 +163,13 @@ By Gholamreza Dar
                         editor.baseVerticalLineSpacing * editor.editorZoom;
                 }
             }
-            if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_E)) {
+            if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_E))
+            {
                 editor.editorZoom += editor.zoomSpeed;
                 editor.editorZoom = MIN(5.0f, editor.editorZoom);
                 std::cout << "zoom: " << editor.editorZoom << std::endl;
-                if (editor.editorZoom < 5.0f) {
+                if (editor.editorZoom < 5.0f)
+                {
                     // int fontSize = int(16 * editor.editorZoom);
                     editor.fontSize = int(16 * editor.editorZoom);
                     UnloadFont(font);
@@ -174,19 +185,22 @@ By Gholamreza Dar
             }
 
             // Toggle debug grid with CTRL+G
-            if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_G)) {
+            if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_G))
+            {
                 editor.debugGrid = !editor.debugGrid;
             }
 
             // Change vertical spacing using Shift+E and Shift+Q
-            if (IsKeyDown(KEY_LEFT_SHIFT) && IsKeyPressed(KEY_E)) {
+            if (IsKeyDown(KEY_LEFT_SHIFT) && IsKeyPressed(KEY_E))
+            {
                 editor.baseVerticalLineSpacing += 5;
                 editor.baseVerticalLineSpacing =
                     MIN(editor.baseVerticalLineSpacing, 100);
                 editor.verticalLineSpacing =
                     editor.baseVerticalLineSpacing * editor.editorZoom;
             }
-            if (IsKeyDown(KEY_LEFT_SHIFT) && IsKeyPressed(KEY_Q)) {
+            if (IsKeyDown(KEY_LEFT_SHIFT) && IsKeyPressed(KEY_Q))
+            {
                 editor.baseVerticalLineSpacing -= 5;
                 editor.baseVerticalLineSpacing =
                     MAX(editor.baseVerticalLineSpacing, 0);
@@ -200,10 +214,19 @@ By Gholamreza Dar
                 {
                     int key;
                     while ((key = GetCharPressed()) !=
-                           0) {  // Check if a key is pressed
+                           0)
+                    { // Check if a key is pressed
+                        // std::cout << "key1: " << key << std::endl;
+                        // ignore backspace
+                        if (key == KEY_BACKSPACE)
+                        {
+                            break;
+                        }
+
                         if (key >= 32 &&
                             key <=
-                                126) {  // Filter for printable ASCII characters
+                                126)
+                        { // Filter for printable ASCII characters
                             // Convert from grid space to line space
                             int charNumber = cursorPosition.x -
                                              editor.lineNumberWidth -
@@ -220,26 +243,59 @@ By Gholamreza Dar
 
                 // Delete character by pressing backspace
                 {
-                    while(IsKeyPressed(KEY_BACKSPACE)) {
-                    // if (IsKeyPressed(KEY_BACKSPACE)) {
+                    // int key;
+                    // while ((key = GetCharPressed()) != 0)
+                    // {
+
+                    //     std::cout << "key: " << key << std::endl;
+                    //     // Check if a backspace key was pressed
+                    //     if (key == KEY_BACKSPACE)
+                    //     {
+                    if (IsKeyPressedRepeat(KEY_BACKSPACE) || IsKeyPressed(KEY_BACKSPACE))
+                    {
                         // Convert from grid space to line space
                         int charNumber = cursorPosition.x -
                                          editor.lineNumberWidth -
                                          editor.spaceBetweenNumbersAndText;
-                        editorData.deleteChar(cursorPosition.y, charNumber);
-                        // move cursor to the left
-                        cursorPosition.x--;
-                        // clamp cursor to the line width
-                        cursorPosition.x = MAX(
-                            editor.lineNumberWidth +
-                                editor.spaceBetweenNumbersAndText,
-                            cursorPosition.x);
+
+                        // ignore backspace if at the first char
+                        if (charNumber > 0)
+                        {
+                            // delete the char at prev position
+                            editorData.deleteChar(cursorPosition.y, charNumber - 1);
+                            // move cursor to the left
+                            cursorPosition.x--;
+                            // clamp cursor to the line width
+                            cursorPosition.x = MAX(
+                                editor.lineNumberWidth +
+                                    editor.spaceBetweenNumbersAndText,
+                                cursorPosition.x);
+                        }
+                        // if at first cursor position -> merge this line with the previous one
+                        // aka delete the line break
+                        if (charNumber == 0)
+                        {
+                            int lineNumber = cursorPosition.y;
+                            if (lineNumber > 0)
+                            {
+                                // merge this line with the previous one
+                                editorData.lines[lineNumber - 1] = editorData.lines[lineNumber - 1] + editorData.lines[lineNumber];
+                                // delete the line
+                                editorData.lines.erase(editorData.lines.begin() + lineNumber);
+                                // move the cursor up
+                                cursorPosition.y = MAX(0, cursorPosition.y - 1);
+                                // move the cursor to the end of the line
+                                cursorPosition.x = editorData.lines[cursorPosition.y].length() + editor.lineNumberWidth + editor.spaceBetweenNumbersAndText;
+                            }
+                        }
                     }
+                    // }
                 }
 
                 // new line by pressing enter
                 {
-                    if (IsKeyPressed(KEY_ENTER)) {
+                    if (IsKeyPressed(KEY_ENTER))
+                    {
                         // Convert from grid space to line space
                         int charNumber = cursorPosition.x -
                                          editor.lineNumberWidth -
@@ -255,11 +311,25 @@ By Gholamreza Dar
                     }
                 }
 
-                // Delete line by pressing Ctrl+D 
+                // Home and End keys
+                {
+                    if (IsKeyPressed(KEY_HOME))
+                    {
+                        cursorPosition.x = 0 + editor.lineNumberWidth + editor.spaceBetweenNumbersAndText;
+                    }
+
+                    if (IsKeyPressed(KEY_END))
+                    {
+                        cursorPosition.x = editorData.lines[cursorPosition.y].length() + editor.lineNumberWidth + editor.spaceBetweenNumbersAndText;
+                    }
+                }
+
+                // Delete line by pressing Ctrl+D
                 // TODO: doesn't work has edge case bugs (delete first line to see)
                 {
                     if (IsKeyPressed(KEY_D) &&
-                        IsKeyDown(KEY_LEFT_CONTROL)) {
+                        IsKeyDown(KEY_LEFT_CONTROL))
+                    {
                         // Convert from grid space to line space
                         int charNumber = cursorPosition.x -
                                          editor.lineNumberWidth -
@@ -279,7 +349,8 @@ By Gholamreza Dar
 
                 // Tab key
                 {
-                    if (IsKeyPressed(KEY_TAB)) {
+                    if (IsKeyPressed(KEY_TAB))
+                    {
                         // Convert from grid space to line space
                         int charNumber = cursorPosition.x -
                                          editor.lineNumberWidth -
@@ -293,7 +364,8 @@ By Gholamreza Dar
 
             // Cursor movement
             if (IsKeyPressed(KEY_LEFT) ||
-                (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_H))) {
+                (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_H)))
+            {
                 cursorPosition.x -= 1;
                 cursorPosition.x = MAX(
                     editor.lineNumberWidth + editor.spaceBetweenNumbersAndText,
@@ -301,7 +373,8 @@ By Gholamreza Dar
                 lastCursorPositionX = cursorPosition.x;
             }
             if (IsKeyPressed(KEY_RIGHT) ||
-                (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_L))) {
+                (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_L)))
+            {
                 cursorPosition.x += 1;
                 cursorPosition.x =
                     MIN(editorData.getLine(cursorPosition.y).size() +
@@ -311,7 +384,8 @@ By Gholamreza Dar
                 lastCursorPositionX = cursorPosition.x;
             }
             if (IsKeyPressed(KEY_UP) ||
-                (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_K))) {
+                (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_K)))
+            {
                 cursorPosition.y -= 1;
                 cursorPosition.y = MAX(0, cursorPosition.y);
                 // also set the x position to the max of position and
@@ -319,7 +393,8 @@ By Gholamreza Dar
                 cursorPosition.x = MAX(cursorPosition.x, lastCursorPositionX);
             }
             if (IsKeyPressed(KEY_DOWN) ||
-                (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_J))) {
+                (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_J)))
+            {
                 cursorPosition.y += 1;
                 cursorPosition.y =
                     MIN(editorData.getNumLines() - 1, cursorPosition.y);
@@ -332,7 +407,8 @@ By Gholamreza Dar
             // width
             if (cursorPosition.x > editorData.getLine(cursorPosition.y).size() +
                                        editor.lineNumberWidth +
-                                       editor.spaceBetweenNumbersAndText) {
+                                       editor.spaceBetweenNumbersAndText)
+            {
                 // Save the last cursor position.x
                 lastCursorPositionX =
                     MAX(lastCursorPositionX, cursorPosition.x);
@@ -348,13 +424,15 @@ By Gholamreza Dar
                 lastCursorPositionX <=
                     editorData.getLine(cursorPosition.y).size() +
                         editor.lineNumberWidth +
-                        editor.spaceBetweenNumbersAndText) {
+                        editor.spaceBetweenNumbersAndText)
+            {
             }
         }
 
         // debug cursor position
         {
-            if (false) {
+            if (false)
+            {
                 std::cout << "cursor x: " << cursorPosition.x << std::endl;
                 std::cout << "last cursor x: " << lastCursorPositionX
                           << std::endl;
@@ -363,15 +441,18 @@ By Gholamreza Dar
         }
 
         // Working grid (this is a grid that every character can be placed on)
-        if (true) {
+        if (true)
+        {
             // Draw the grid
-            if (editor.debugGrid) {
+            if (editor.debugGrid)
+            {
                 int gridRows =
                     static_cast<int>(screenHeight / editor.gridHeight);
                 int gridCols = static_cast<int>(screenWidth / editor.gridWidth);
 
                 // Draw vertical lines
-                for (int i = 0; i < gridCols + 1; i++) {
+                for (int i = 0; i < gridCols + 1; i++)
+                {
                     DrawRectangle(i * editor.gridWidth + editor.windowPadding,
                                   editor.windowPadding, editor.gridLineWidth,
                                   screenHeight - editor.windowPadding * 2,
@@ -379,7 +460,8 @@ By Gholamreza Dar
                 }
 
                 // Draw Horizontal lines
-                for (int i = 0; i < gridRows + 1; i++) {
+                for (int i = 0; i < gridRows + 1; i++)
+                {
                     DrawRectangle(editor.windowPadding,
                                   i * editor.verticalLineSpacing +
                                       i * editor.gridHeight +
@@ -401,7 +483,8 @@ By Gholamreza Dar
             // Line Numbers
             SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
             // TODO: dont start from 0, have a viewport start, end
-            for (int i = 0; i < editorData.getNumLines(); i++) {
+            for (int i = 0; i < editorData.getNumLines(); i++)
+            {
                 float x = editor.windowPadding;
                 float y = i * editor.verticalLineSpacing +
                           i * editor.gridHeight + editor.windowPadding;
@@ -416,7 +499,8 @@ By Gholamreza Dar
         {
             // Text
             // TODO: dont start from 0, have a viewport start, end
-            for (int i = 0; i < editorData.getNumLines(); i++) {
+            for (int i = 0; i < editorData.getNumLines(); i++)
+            {
                 float x = editor.windowPadding +
                           editor.gridWidth * (editor.lineNumberWidth + 2);
                 float y = i * editor.verticalLineSpacing +
