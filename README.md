@@ -3,7 +3,8 @@
 This is a featureless but very fast text editor written in C++ using raylib.
 I wanted to understand how text editors work under the hood.
 
-![demo image](images/demo_cursor.png)
+<!-- ![demo image](images/demo_cursor.png) -->
+![demo gif](images/demov1.gif)
 
 ## Features
 
