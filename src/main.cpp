@@ -110,7 +110,7 @@ By Gholamreza Dar
 
     // empty text
     //TODO: Segmentation fault with empty text
-    textData = "\n";
+    // textData = "\n";
 
     // convert loaded text to EditorData
     EditorData editorData(textData);
