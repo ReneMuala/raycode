@@ -9,13 +9,15 @@
 
 - [x] Insert text at cursor
 - [x] Delete text at cursor (backspace)
-  - [ ] Needs work
+  - [x] Needs work
 - [x] Enter key should insert a new line
+- [ ] Only Render the visible lines
+- [ ] Set cursor position with mouse
 - [ ] Scrolling
   - [ ] Scroll wheel
   - [ ] Follow cursor
   - [ ] Page up/down
-  - [ ] Home/end
+  - [ ] Ctrl + Home/end
 - [ ] Duplicate line with Ctrl+Shift+Arrow
 - [ ] Move line up/down with Alt+Arrow
 - [ ] Load text file from command line arguments
