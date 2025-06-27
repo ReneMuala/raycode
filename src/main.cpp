@@ -440,6 +440,18 @@ By Gholamreza Dar
             }
         }
 
+        if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)){
+            // std::cout << GetMouseX() << std::endl;
+            int y = GetMouseY();
+            y /= editor.gridHeight + editor.verticalLineSpacing;
+            cursorPosition.y = y > editorData.getNumLines() - 1 ? editorData.getNumLines() - 1 : y;
+
+            int x = GetMouseX();// / (int)editor.gridWidth) * (int)editor.gridWidth  + editor.windowPadding;
+            x /= editor.gridWidth;
+            cursorPosition.x = x;
+            // std::cout << GetMouseY() << std::endl;
+        }
+
         // Working grid (this is a grid that every character can be placed on)
         if (true)
         {
