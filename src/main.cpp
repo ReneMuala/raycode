@@ -488,10 +488,12 @@ By Gholamreza Dar
                 float x = editor.windowPadding;
                 float y = i * editor.verticalLineSpacing +
                           i * editor.gridHeight + editor.windowPadding;
+
                 std::string line_number_text =
                     leftPad(std::to_string(i + 1), editor.lineNumberWidth);
                 DrawTextEx(font, line_number_text.c_str(), Vector2{x, y},
                            editor.fontSize, 0, editor.editorLineNumbersColor);
+                if (y >= GetScreenHeight()) break;
             }
         }
 
@@ -505,6 +507,8 @@ By Gholamreza Dar
                           editor.gridWidth * (editor.lineNumberWidth + 2);
                 float y = i * editor.verticalLineSpacing +
                           i * editor.gridHeight + editor.windowPadding;
+                if (y >= GetScreenHeight())
+                    break;
                 std::string line_text = editorData.getLine(i);
                 DrawTextEx(font, line_text.c_str(), Vector2{x, y},
                            editor.fontSize, 0, editor.editorTextColor);
