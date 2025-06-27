@@ -278,14 +278,14 @@ By Gholamreza Dar
                             int lineNumber = cursorPosition.y;
                             if (lineNumber > 0)
                             {
+                                // move the cursor up
+                                cursorPosition.y = MAX(0, cursorPosition.y - 1);
+                                // move the cursor to the end of the line
+                                cursorPosition.x = editor.lineNumberWidth + editor.spaceBetweenNumbersAndText + editorData.lines[cursorPosition.y].length();
                                 // merge this line with the previous one
                                 editorData.lines[lineNumber - 1] = editorData.lines[lineNumber - 1] + editorData.lines[lineNumber];
                                 // delete the line
                                 editorData.lines.erase(editorData.lines.begin() + lineNumber);
-                                // move the cursor up
-                                cursorPosition.y = MAX(0, cursorPosition.y - 1);
-                                // move the cursor to the end of the line
-                                cursorPosition.x = editorData.lines[cursorPosition.y].length() + editor.lineNumberWidth + editor.spaceBetweenNumbersAndText;
                             }
                         }
                     }
