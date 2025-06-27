@@ -12,7 +12,7 @@
   - [x] Needs work
 - [x] Enter key should insert a new line
 - [x] Only Render the visible lines
-- [ ] Set cursor position with mouse
+- [x] Set cursor position with mouse
 - [ ] Scrolling
   - [ ] Scroll wheel
   - [ ] Follow cursor
