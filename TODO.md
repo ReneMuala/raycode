@@ -11,8 +11,8 @@
 - [x] Delete text at cursor (backspace)
   - [x] Needs work
 - [x] Enter key should insert a new line
-- [ ] Only Render the visible lines
-- [ ] Set cursor position with mouse
+- [x] Only Render the visible lines
+- [x] Set cursor position with mouse
 - [ ] Scrolling
   - [ ] Scroll wheel
   - [ ] Follow cursor

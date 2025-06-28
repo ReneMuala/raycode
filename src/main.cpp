@@ -278,14 +278,14 @@ By Gholamreza Dar
                             int lineNumber = cursorPosition.y;
                             if (lineNumber > 0)
                             {
+                                // move the cursor up
+                                cursorPosition.y = MAX(0, cursorPosition.y - 1);
+                                // move the cursor to the end of the line
+                                cursorPosition.x = editor.lineNumberWidth + editor.spaceBetweenNumbersAndText + editorData.lines[cursorPosition.y].length();
                                 // merge this line with the previous one
                                 editorData.lines[lineNumber - 1] = editorData.lines[lineNumber - 1] + editorData.lines[lineNumber];
                                 // delete the line
                                 editorData.lines.erase(editorData.lines.begin() + lineNumber);
-                                // move the cursor up
-                                cursorPosition.y = MAX(0, cursorPosition.y - 1);
-                                // move the cursor to the end of the line
-                                cursorPosition.x = editorData.lines[cursorPosition.y].length() + editor.lineNumberWidth + editor.spaceBetweenNumbersAndText;
                             }
                         }
                     }
@@ -440,6 +440,18 @@ By Gholamreza Dar
             }
         }
 
+        if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)){
+            // std::cout << GetMouseX() << std::endl;
+            int y = GetMouseY();
+            y /= editor.gridHeight + editor.verticalLineSpacing;
+            cursorPosition.y = y > editorData.getNumLines() - 1 ? editorData.getNumLines() - 1 : y;
+
+            int x = GetMouseX();// / (int)editor.gridWidth) * (int)editor.gridWidth  + editor.windowPadding;
+            x /= editor.gridWidth;
+            cursorPosition.x = x;
+            // std::cout << GetMouseY() << std::endl;
+        }
+
         // Working grid (this is a grid that every character can be placed on)
         if (true)
         {
@@ -488,10 +500,12 @@ By Gholamreza Dar
                 float x = editor.windowPadding;
                 float y = i * editor.verticalLineSpacing +
                           i * editor.gridHeight + editor.windowPadding;
+
                 std::string line_number_text =
                     leftPad(std::to_string(i + 1), editor.lineNumberWidth);
                 DrawTextEx(font, line_number_text.c_str(), Vector2{x, y},
                            editor.fontSize, 0, editor.editorLineNumbersColor);
+                if (y >= GetScreenHeight()) break;
             }
         }
 
@@ -505,6 +519,8 @@ By Gholamreza Dar
                           editor.gridWidth * (editor.lineNumberWidth + 2);
                 float y = i * editor.verticalLineSpacing +
                           i * editor.gridHeight + editor.windowPadding;
+                if (y >= GetScreenHeight())
+                    break;
                 std::string line_text = editorData.getLine(i);
                 DrawTextEx(font, line_text.c_str(), Vector2{x, y},
                            editor.fontSize, 0, editor.editorTextColor);
