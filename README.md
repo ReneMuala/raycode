@@ -19,9 +19,11 @@ I wanted to understand how text editors work under the hood.
 - Use `Ctrl + Q` to zoom out and `Ctrl + E` to zoom in
 - Use `Shift + Q` to decrease the vertical spacing and `Shift + E` to increase the vertical spacing
 - Use `Ctrl + G` to toggle the debug grid
-- Use Arrow keys to move the cursor
+- Use Arrow keys to move the cursor (or Ctrl + ijkl)
 - Type any character to insert a character (lower+upper case, numbers)
 - Type `Backspace` to delete a character
+- Type `Enter` to insert a new line
+- Use `Crtl + D` to delete a line
 - Type `Tab` to insert 4 spaces
 
 ## TODO
